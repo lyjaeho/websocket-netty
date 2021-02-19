@@ -9,7 +9,7 @@ public class DemoApplication {
         System.out.println("testdata");
 
         new Thread(()-> {
-            new WsServer().start();
+            new WsServer().start(18800);
         }).start();
 
         System.in.read();

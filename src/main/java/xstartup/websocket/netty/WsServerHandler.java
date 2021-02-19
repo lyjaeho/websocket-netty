@@ -51,6 +51,8 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
 
         // 客服端发送过来的消息
         String request = ((TextWebSocketFrame)frame).text();
+        System.out.println("服务端收到新信息：" + request);
+        sendMessage(ctx, "reply to:" + ctx.channel().remoteAddress().toString());
 //        LOGGER.info("服务端收到新信息：" + request);
 //        JSONObject param = null;
 //        try {
@@ -106,4 +108,10 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
 //        ctx.channel().writeAndFlush(new TextWebSocketFrame(responseJson));
     }
 
+    private void sendMessage(ChannelHandlerContext ctx, String errorMsg) {
+//        String responseJson = new ResponseJson()
+//                .error(errorMsg)
+//                .toString();
+      ctx.channel().writeAndFlush(new TextWebSocketFrame(errorMsg));
+    }
 }

@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.concurrent.Future;
@@ -16,6 +17,7 @@ public class WsServer {
     private int port;
     private WsChannelInitializer channelInitializer = new WsChannelInitializer();
     private ChannelFuture serverChannelFuture;
+    private ServerSocketChannel serverSocketChannel;
 
     public void start(int port) {
         this.port = port;
@@ -33,8 +35,19 @@ public class WsServer {
                     .childHandler(channelInitializer);
 
             //logger.info("Netty Websocket服务器启动完成已绑定端口:" + port);
-
+            System.out.println("Netty Websocket服务器启动完成已绑定端口:" + port);
             serverChannelFuture = serverBootstrap.bind(port).sync();
+            if (serverChannelFuture.isSuccess()) {
+                serverSocketChannel = (ServerSocketChannel) serverChannelFuture.channel();
+                System.out.println("服务端开启成功");
+                //logger.info("服务端开启成功");
+            } else {
+                //logger.info("服务端开启失败");
+                System.out.println("服务端开启失败");
+            }
+
+            //等待服务监听端口关闭,就是由于这里会将线程阻塞，导致无法发送信息，所以我这里开了线程
+            serverChannelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
             //logger.info(e.getMessage());
             bossGroup.shutdownGracefully();
