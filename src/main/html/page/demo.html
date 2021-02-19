@@ -4,14 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="./WsClient.js"></script>
 </head>
 <body>
     <div>
-
+        <p>接收的消息：</p>
+        <textarea rows="3" cols="60" id="txtSReceiveMsg"></textarea>
+        <p></p>
+        <input type="text" name="fname" id="txtSendMsg" />
+        <button type="button" id="btnSend">发送消息</button>
     </div>
     <script>
 
+        var wsClient = new WsClient();
+        wsClient.connect("10.0.1.227", 18800, "client1", function(message){
+           console.log('recevice message', message);
+           if(message.type == 'message') {
+             document.getElementById('txtSReceiveMsg').innerHTML = message.data;
+           }
+        });
 
+        var btn = document.getElementById("btnSend");
+        // 第二种 监听点击事件
+        btn.addEventListener('click', function(){
+           var sendMsg = document.getElementById('txtSendMsg').value;
+           if(sendMsg) {
+             wsClient.send(sendMsg);
+           }
+        });
+        
+        // ws.onopen = function(evt) { 
+        //   console.log("Connection open ..."); 
+        //   ws.send("Hello WebSockets!");
+        // };
+
+        // ws.onmessage = function(evt) {
+        //   console.log( "Received Message: " + evt.data);
+        //   ws.close();
+        // };
+
+        // ws.onclose = function(evt) {
+        //   console.log("Connection closed.");
+        // };      
         
     </script>
 </body>
