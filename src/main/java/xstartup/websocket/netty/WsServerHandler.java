@@ -1,10 +1,9 @@
 package xstartup.websocket.netty;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.*;
+import xstartup.websocket.data.WsData;
 
 public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
@@ -12,6 +11,11 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
 //
 //    @Autowired
 //    private ChatService chatService;
+    private WsServer wsServer;
+
+    public WsServerHandler(WsServer wsServer) {
+        this.wsServer = wsServer;
+    }
 
     /**
      * 描述：读取完连接的消息后，对消息进行处理。
@@ -29,58 +33,25 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
      * @throws Exception
      */
     private void handlerWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
-        // 关闭请求
         if (frame instanceof CloseWebSocketFrame) {
-//            WebSocketServerHandshaker handshaker = Constant.webSocketHandshakerMap.get(ctx.channel().id().asLongText());
-//            if (handshaker == null) {
-//                sendErrorMessage(ctx, "不存在的客户端连接！");
-//            } else {
-//                handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-//            }
+            // 关闭请求
+            System.out.println(String.format("client close channel:%s", ctx.channel().id().asLongText()));
+            this.wsServer.getClientInstanceCollection().removeByChannel(ctx.channel());
             return;
-        }
-        // ping请求
-        if (frame instanceof PingWebSocketFrame) {
+        } else if (frame instanceof PingWebSocketFrame) {
+            // ping请求
             ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
             return;
+        } else if (!(frame instanceof TextWebSocketFrame)) {
+            // 只支持文本格式，不支持二进制消息
+            System.out.println("仅支持文本(Text)格式，不支持二进制消息");
+        } else {
+            // 客服端发送过来的消息
+            String request = ((TextWebSocketFrame) frame).text();
+            System.out.println("receive:" + request);
+            WsData wsData = WsData.fromJson(request);
+            wsServer.resolve(ctx.channel(), wsData);
         }
-        // 只支持文本格式，不支持二进制消息
-        if (!(frame instanceof TextWebSocketFrame)) {
-            sendErrorMessage(ctx, "仅支持文本(Text)格式，不支持二进制消息");
-        }
-
-        // 客服端发送过来的消息
-        String request = ((TextWebSocketFrame)frame).text();
-        System.out.println("服务端收到新信息：" + request);
-        sendMessage(ctx, "reply to:" + ctx.channel().remoteAddress().toString());
-//        LOGGER.info("服务端收到新信息：" + request);
-//        JSONObject param = null;
-//        try {
-//            param = JSONObject.parseObject(request);
-//        } catch (Exception e) {
-//            sendErrorMessage(ctx, "JSON字符串转换出错！");
-//            e.printStackTrace();
-//        }
-//        if (param == null) {
-//            sendErrorMessage(ctx, "参数为空！");
-//            return;
-//        }
-//
-//        String type = (String) param.get("type");
-//        switch (type) {
-//            case "REGISTER":
-//                chatService.register(param, ctx);
-//                break;
-//            case "SINGLE_SENDING":
-//                chatService.singleSend(param, ctx);
-//                break;
-//            case "GROUP_SENDING":
-//                chatService.groupSend(param, ctx);
-//                break;
-//            default:
-//                chatService.typeError(ctx);
-//                break;
-//        }
     }
 
     /**
@@ -89,6 +60,8 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //chatService.remove(ctx);
+        System.out.println(String.format("client disconnect channel:%s", ctx.channel().id().asLongText()));
+        this.wsServer.getClientInstanceCollection().removeByChannel(ctx.channel());
     }
 
     /**
@@ -97,21 +70,7 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
+
         ctx.close();
-    }
-
-
-    private void sendErrorMessage(ChannelHandlerContext ctx, String errorMsg) {
-//        String responseJson = new ResponseJson()
-//                .error(errorMsg)
-//                .toString();
-//        ctx.channel().writeAndFlush(new TextWebSocketFrame(responseJson));
-    }
-
-    private void sendMessage(ChannelHandlerContext ctx, String errorMsg) {
-//        String responseJson = new ResponseJson()
-//                .error(errorMsg)
-//                .toString();
-      ctx.channel().writeAndFlush(new TextWebSocketFrame(errorMsg));
     }
 }

@@ -10,11 +10,17 @@ public class WsChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     public WsServerHandler webSocketServerHandler;
 
+    private WsServer wsServer;
+
+    public WsChannelInitializer(WsServer wsServer) {
+        this.wsServer = wsServer;
+    }
+
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ch.pipeline().addLast("http-codec", new HttpServerCodec()); // HTTP编码解码器
         ch.pipeline().addLast("aggregator", new HttpObjectAggregator(65536)); // 把HTTP头、HTTP体拼成完整的HTTP请求
         ch.pipeline().addLast("http-handler", new WsHttpRequestHandler());
-        ch.pipeline().addLast("websocket-handler",new WsServerHandler());
+        ch.pipeline().addLast("websocket-handler",new WsServerHandler(wsServer));
     }
 }
