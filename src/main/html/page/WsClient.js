@@ -4,6 +4,8 @@ var WS_COMMAND_LOGIN_BEGIN = 1;
 var WS_COMMAND_LOGIN_SUCCESS = 2;
 var WS_COMMAND_LOGIN_ERROR = 3;
 
+var WS_DATA_HEARTBEAT = 'HEARTBEAT';
+
 function WsDataHeader(id, command, uniqueId) {
   this.command = command;
   this.id = id;
@@ -57,18 +59,17 @@ function WsClient(ip, port, clientId) {
       console.log('send:' + wsDataJson);
       _this.webSocket.send(wsDataJson);
 
-        if(this.timer == null){
-            var $this = this;
-            this.timer = window.setInterval(function(){
-                if($this.wsInstance != null){
-                    try {
-                        $this.wsInstance.send('HEARTBEAT');
-                    } catch(e){
-                        console.error(e);
-                    }
-                }
-            }, 5000);
-        }
+      if (_this.timer == null) {
+        _this.timer = window.setInterval(function () {
+          if (_this.webSocket != null) {
+            try {
+              _this.webSocket.send(WS_DATA_HEARTBEAT);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }, 5000);
+      }
     };
 
     this.webSocket.onmessage = function (evt) {

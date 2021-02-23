@@ -29,6 +29,7 @@
       }
     }, function (wsData) {
       console.log('recevice message', wsData);
+      //header里的command是具体命令，content是具体内容
       document.getElementById('txtDataHeader').innerHTML = JSON.stringify(wsData.header);
       document.getElementById('txtSReceiveMsg').innerHTML = wsData.content;
     });
