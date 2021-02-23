@@ -24,8 +24,20 @@ function WsClient(ip,port,clientId,wsInstance) {
     console.log("Connection connect.");
     let _this = this;
     this.wsInstance.onopen = function(evt) { 
-      console.log("Connection open ..."); 
+      console.log("Connection open ...");
       _this.state = 1;
+        if(this.timer == null){
+            var $this = this;
+            this.timer = window.setInterval(function(){
+                if($this.wsInstance != null){
+                    try {
+                        $this.wsInstance.send('HEARTBEAT');
+                    } catch(e){
+                        console.error(e);
+                    }
+                }
+            }, 5000);
+        }
     };
 
     this.wsInstance.onmessage = function(evt) { 

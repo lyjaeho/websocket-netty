@@ -48,9 +48,13 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
         } else {
             // 客服端发送过来的消息
             String request = ((TextWebSocketFrame) frame).text();
+            if (request != null && WsData.HEARTBEAT.equals(request)) {
+                System.out.println(request);
+                return;
+            }
             System.out.println("receive:" + request);
             WsData wsData = WsData.fromJson(request);
-            wsServer.resolve(ctx.channel(), wsData);
+            this.wsServer.resolve(ctx.channel(), wsData);
         }
     }
 

@@ -16,6 +16,8 @@ public class WsData {
 
     public final static String SimpleDateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
+    public final static String HEARTBEAT = "HEARTBEAT";
+
     /**
      * 命令码
      */
