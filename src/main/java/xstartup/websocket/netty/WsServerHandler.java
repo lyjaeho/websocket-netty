@@ -53,8 +53,12 @@ public class WsServerHandler extends SimpleChannelInboundHandler<WebSocketFrame>
                 return;
             }
             System.out.println("receive:" + request);
-            WsData wsData = WsData.fromJson(request);
-            this.wsServer.resolve(ctx.channel(), wsData);
+            try {
+                WsData wsData = WsData.fromJson(request);
+                this.wsServer.resolve(ctx.channel(), wsData);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
